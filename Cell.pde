@@ -1,15 +1,15 @@
 class Cell
 {
-  float         whiteSpace = 4;
+  float         whiteSpace = 3;
   float         darkSpace = whiteSpace*2;
 
   PVector       loc;
   ArrayList<bp> points = new ArrayList<bp>();
   float         size;
   float         growRate;
-  int           pointCount = 100;
+  int           pointCount = 200;
   color         borderColor;
-  float         maxSize = 100;
+  float         maxSize;
   boolean       done = false;
   boolean       stillCircular = true;
   color         originalFill;
@@ -19,13 +19,14 @@ class Cell
   ArrayList<Cell> neighbors = new ArrayList<Cell>();
   Cell parent;
 
-  public Cell(float x, float y, float s, Cell parentCell)
+  public Cell(float x, float y, float s, Cell parentCell, float maxS)
   {
     loc = new PVector(x, y);
     growRate = random(0.7, 1.1);
     size = s;
+    maxSize = maxS;
     parent = parentCell;
-
+    
     for (int i=0; i<pointCount; i++)
     {
       float a = map(i, 0, pointCount -1, 0, TWO_PI);
@@ -38,7 +39,7 @@ class Cell
       originalFill = color(parentCell.originalFill, 200);//random(0, 255), random(0, 255), random(0, 255));
     } else
     {
-      originalFill = colorManager.GetRandomColor();//color(random(0, 150), random(0, 150), random(0, 150));
+      originalFill = colorManager.getColor();
     }
 
     fillColor = originalFill;
@@ -196,21 +197,29 @@ class Cell
   public void Display()
   {
     stroke(borderColor);
-    fill(fillColor);    
-    strokeWeight(2);
+    noFill();
+    strokeWeight(1);
 
     float lastX = 0;
     float lastY = 0;
 
-    beginShape();    
+    beginShape();  
+    vertex(loc.x + points.get(0).calcX(), loc.y + points.get(0).calcY());
+    
     for (bp p : points)
     {
       float x = loc.x + cos(p.angle) * p.size;
       float y = loc.y + sin(p.angle) * p.size;
 
-      if ((int)x != (int)lastX || (int)y != (int)lastY) vertex(x, y);
-      lastX = x;
-      lastY = y;
+      float xd = abs(x - lastX);
+      float yd = abs(y - lastY);
+      
+      if (xd>drawD || yd>drawD)
+      {
+        curveVertex(x, y);
+        lastX = x;
+        lastY = y;
+      }
     }
     endShape(CLOSE);
   }
